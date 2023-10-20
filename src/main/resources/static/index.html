@@ -1,0 +1,50 @@
+<html>
+<head>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.6.1/sockjs.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.js"></script>
+    <script type="text/javascript">
+            var reference = "REF" + Math.random().toString().substr(2, 8);
+
+            document.addEventListener("DOMContentLoaded", () => {
+                document.getElementById('greeting').innerHTML += reference
+            });
+
+            var stompClient = null;
+
+            var socket = new SockJS('/ws');
+            stompClient = Stomp.over(socket);
+            stompClient.connect({}, function(frame) {
+                console.log(frame);
+                stompClient.send("/app/payment/" + reference, {});
+                stompClient.subscribe('/user/notifications', function(result) {
+                    show(JSON.parse(result.body));
+                });
+            });
+
+            function show(message) {
+                var response = document.getElementById('messages');
+                var p = document.createElement('p');
+                if (message.to) {
+                    p.innerHTML= "message to " + message.to + ": "  + message.text;
+                } else {
+                    p.innerHTML= "message: "  + message.text;
+                }
+                response.appendChild(p);
+            }
+        </script>
+</head>
+<body>
+<div>
+    <p id="greeting">
+        Awaiting for accepting payment with reference
+    </p>
+    <br />
+    <br />
+    <br />
+
+    <div id="messages"></div>
+
+</div>
+
+</body>
+</html>
